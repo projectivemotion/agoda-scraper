@@ -11,7 +11,7 @@ class AgodaScrapper
     protected   $last_url =   '';
 
     public      $curl_verbose = false;
-    public   $use_cache        = TRUE;
+    public      $use_cache        = TRUE;
 
     protected function getCurl($url, $post = NULL, $JSON = false)
     {
@@ -67,7 +67,7 @@ class AgodaScrapper
 
     public function getCookieFile()
     {
-        return '/tmp/cookie-agoda.txt';
+        return sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cookie-agoda.txt';
     }
 
     public function cache_get($url, $post = NULL, $JSON = false, $disable_cache = false)
@@ -131,55 +131,18 @@ class AgodaScrapper
         return $response;
     }
 
-    public function submit_search_old($action, $params)
-    {
-        $post = array(
-            'SearchInput' => 'Paris',
-            'SeachDefaultText' => 'Bali',
-            'SearchCheckIn' => '03/11/2016',
-            'SearchCheckOut' => '03/13/2016',
-            'IsAutoCompleteEnabled' => 'True',
-            'ActionForm' => '',
-            'CityId' => '17193',
-            'CityTranslatedName' => '0',
-            'CountryId' => '0',
-            'ObjectId' => '0',
-            'PageTypeId' => '0',
-            'MappingTypeId' => '0',
-            'LastSearchInput' => 'Bali',
-            'UserLatitude' => '0',
-            'UserLongtitude' => '0',
-            'UserCityID' => '0',
-            'IsHotel' => 'False',
-            'Rooms' => '1',
-            'Adults' => '2',
-            'Children' => '0',
-            'OneRoomText' => '1 Room',
-            'OneAdultText' => '1 Adult ',
-            'OneChildText' => '1 Child',
-            'XRoomsText' => '{0} Rooms',
-            'XAdultsText' => '{0} Adults',
-            'XChildrenText' => '{0} Children',
-            'CheckInDay' => '11',
-            'CheckInMonthYear' => '03-2016',
-            'NightCount' => '2',
-        );
-
-        $response = $this->cache_get($action, $post);
-
-        file_put_contents('test.html', $response);
-        return phpQuery::newDocument($response);
-    }
-
-    public function doSearchInit()
+    public function doSearchInit($city, $checkin, $checkout)
     {
         $data = $this->cache_get('http://' . $this->domain . '/');
 
         $m  =   preg_match('#<form action="([^"]*?)" class="oneline-sb-form"#', $data, $matches);
 
-        $action = preg_replace("#[\r\n\t\s]+#", '', $matches[1]);
+        if(!$m)
+            throw new Exception('Unable to find search form.');
 
-        $doc    =   $this->submit_search($action, "Paris", "2016-03-11", "2016-03-13");
+        $action = preg_replace("#[\r\n\t\\s]+#", '', $matches[1]);
+
+        $doc    =   $this->submit_search($action, $city, $checkin, $checkout);
 
         $data   =   $this->extractPageData($doc);
 
@@ -201,16 +164,15 @@ class AgodaScrapper
     {
         if(!$data)
         {
-            $data = $this->doSearchInit();
+            throw new Exception("Must call doSearchInit.");
         }else{
             $data   =   $this->doSearchAPI($data);
         }
         return $data;
     }
 
-    function doSearchAll($callback)
+    function doSearchAll($callback, $data = NULL)
     {
-        $data = NULL;
         do{
             $data = $this->doSearch($data);
             if(!$data) break;
@@ -244,12 +206,7 @@ class AgodaScrapper
     {
         $searchCriteria =   &$data['initialResults']['SearchCriteria'];
 
-        if($searchCriteria['PageNumber']    ==  1)
-        {
-            $searchCriteria['PageNumber']   =   3;
-        }else{
-            $searchCriteria['PageNumber']++;
-        }
+        $searchCriteria['PageNumber']++;
 
         return true;
     }

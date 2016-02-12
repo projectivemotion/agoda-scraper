@@ -34,6 +34,8 @@ $Agoda = new AgodaScrapper();
 $Agoda->curl_verbose    =   0;
 $Agoda->use_cache       =   $argv[1] == '1';
 
+$data = $Agoda->doSearchInit('Cancun', '2016-03-10', '2016-03-15');
+
 $stdout = fopen('php://output', 'w');
 
 $Agoda->doSearchAll(function ($hotels, $page_num) use (&$stdout) {
@@ -46,9 +48,10 @@ $Agoda->doSearchAll(function ($hotels, $page_num) use (&$stdout) {
                 );
         fputcsv($stdout, $mydata);
     }
+    sleep(3);
     if($page_num > 5)
         return false;
     return true;
-});
+}, $data);
 
 fclose($stdout);
