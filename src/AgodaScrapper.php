@@ -10,8 +10,11 @@ class AgodaScrapper
     protected   $domain = 'www.agoda.com';
     protected   $last_url =   '';
 
-    public      $curl_verbose = false;
-    public      $use_cache        = TRUE;
+    public      $curl_verbose   = false;
+    public      $use_cache      = false;
+
+    public      $page_size  =   30;
+
 
     protected function getCurl($url, $post = NULL, $JSON = false)
     {
@@ -131,7 +134,7 @@ class AgodaScrapper
         return $response;
     }
 
-    public function doSearchInit($city, $checkin, $checkout)
+    public function doSearchInit($city, $checkin, $checkout, $currencyCode = 'EUR')
     {
         $data = $this->cache_get('http://' . $this->domain . '/');
 
@@ -142,9 +145,12 @@ class AgodaScrapper
 
         $action = preg_replace("#[\r\n\t\\s]+#", '', $matches[1]);
 
+        $this->setCurrency($currencyCode);
+
         $doc    =   $this->submit_search($action, $city, $checkin, $checkout);
 
         $data   =   $this->extractPageData($doc);
+        $data['initialResults']['SearchCriteria']['PageSize']   =   $this->page_size;
 
         return $data;
     }
@@ -194,7 +200,7 @@ class AgodaScrapper
         if(!is_array($data)) return false;
 
         $f = (object)$data['initialResults'];
-        if($f->PageNumber < $f->PageSize)
+        if($f->PageNumber < $f->TotalPage)
         {
             return true;
         }
@@ -249,4 +255,11 @@ class AgodaScrapper
         return $page_info;
     }
 
+    public function setCurrency($CurrencyCode)
+    {
+        $result =   $this->getCurl('/exptest/Master/SetCurrencyLabel', array('value'=> strtoupper($CurrencyCode)), false);
+
+        $json   =   json_decode($result);
+        return $json && ($json->success == 'true');
+    }
 }

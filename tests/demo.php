@@ -34,7 +34,7 @@ $Agoda = new AgodaScrapper();
 $Agoda->curl_verbose    =   0;
 $Agoda->use_cache       =   $argv[1] == '1';
 
-$data = $Agoda->doSearchInit('Cancun', '2016-03-10', '2016-03-15');
+$data = $Agoda->doSearchInit('Cancun', '2016-03-10', '2016-03-15', 'USD');
 
 $stdout = fopen('php://output', 'w');
 
