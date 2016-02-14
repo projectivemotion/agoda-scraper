@@ -34,17 +34,18 @@ $Agoda = new AgodaScrapper();
 $Agoda->curl_verbose    =   0;
 $Agoda->use_cache       =   $argv[1] == '1';
 
-$data = $Agoda->doSearchInit('Cancun', '2016-03-10', '2016-03-15', 'USD');
+$data = $Agoda->doSearchInit('Cancun', '2016-03-10', '2016-03-15', 'EUR');
 
 $stdout = fopen('php://output', 'w');
 
-$Agoda->doSearchAll(function ($hotels, $page_num) use (&$stdout) {
+$Agoda->doSearchAll(function ($hotels, $page_num) use (&$stdout, $Agoda) {
     foreach($hotels as $hotel)
     {
         $obj = (object)$hotel;
         $mydata =   array($obj->TranslatedHotelName,
                 $obj->CurrencyCode,
-                $obj->FormattedDisplayPrice
+                $obj->FormattedDisplayPrice,
+                $Agoda->getNetHotelPrice($hotel)
                 );
         fputcsv($stdout, $mydata);
     }

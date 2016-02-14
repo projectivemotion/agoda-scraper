@@ -29,12 +29,17 @@ class AgodaScrapper
             'Upgrade-Insecure-Requests: 1',
             'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36',
             'Cache-Control: max-age=0',
-            'Connection: keep-alive'
+            'Connection: keep-alive', 'Expect: '
         );
+
+        $is_payload =   is_string($post);
 
         if($JSON)
         {
             $headers[]  =   'Accept: application/json, text/javascript, */*; q=0.01';
+            $headers[]  =   'X-Requested-With: XMLHttpRequest';
+            if($is_payload)
+                $headers[]  =   'Content-Type: application/json';
         }else{
             $headers[]  =   'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8';
         }
@@ -43,7 +48,7 @@ class AgodaScrapper
             curl_setopt($curl, CURLOPT_VERBOSE, 1);
         }
         if($post){
-            $string = http_build_query($post);
+            $string = $is_payload ? $post : http_build_query($post);
             curl_setopt($curl, CURLOPT_POST, 1);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $string);
         }
@@ -136,9 +141,9 @@ class AgodaScrapper
 
     public function doSearchInit($city, $checkin, $checkout, $currencyCode = 'EUR')
     {
-        $data = $this->cache_get('http://' . $this->domain . '/');
+        $page = $this->cache_get('http://' . $this->domain . '/');
 
-        $m  =   preg_match('#<form action="([^"]*?)" class="oneline-sb-form"#', $data, $matches);
+        $m  =   preg_match('#<form action="([^"]*?)" class="oneline-sb-form"#', $page, $matches);
 
         if(!$m)
             throw new Exception('Unable to find search form.');
@@ -261,5 +266,36 @@ class AgodaScrapper
 
         $json   =   json_decode($result);
         return $json && ($json->success == 'true');
+    }
+
+    public function getNetHotelPrice($hotel)
+    {
+        $HotelURL   =   $hotel['HotelUrl'];
+        $referrer = "http://$this->domain$HotelURL";
+        $page_result    =   $this->cache_get($referrer);
+
+        $doc = phpQuery::newDocument($page_result);
+
+        $prebookURL =   $doc['table#room-grid-table tbody']->attr('data-prebook-url');
+
+        $roomVARS   =   $doc['tr#room-1']->attr('data-bargs');
+
+        $post_vars  =   array('bargs' => $roomVARS, 'exbed' => array(), 'rooms' => 1);
+
+        $checkout_page    =   $this->cache_get($prebookURL, json_encode($post_vars), true, true);
+
+        $checkout_redir  =   json_decode($checkout_page);
+
+        if(!$checkout_redir)
+            throw new Exception("Failed to recieve info.");
+
+        $this->last_url =   $referrer;
+
+        $checkout_info  =   $this->cache_get(html_entity_decode($checkout_redir->action), array('arg' => $checkout_redir->arg));
+
+        $doc    =   phpQuery::newDocument($checkout_info);
+        $finalPrice =   $doc['#pnlTotalPrice .blackbold:last']->text();
+
+        return $finalPrice;
     }
 }
