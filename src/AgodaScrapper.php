@@ -9,6 +9,7 @@ class AgodaScrapper
 {
     protected   $domain = 'www.agoda.com';
     protected   $last_url =   '';
+    protected   $HotelFilter    =   '';
 
     public      $curl_verbose   = false;
     public      $use_cache      = false;
@@ -157,6 +158,9 @@ class AgodaScrapper
         $data   =   $this->extractPageData($doc);
         $data['initialResults']['SearchCriteria']['PageSize']   =   $this->page_size;
 
+        if($this->HotelFilter)
+            $data['initialResults']['SearchCriteria']['Filters']['HotelName']   =   $this->HotelFilter;
+
         return $data;
     }
 
@@ -297,5 +301,15 @@ class AgodaScrapper
         $finalPrice =   str_replace(',', '', $doc['#pnlTotalPrice .blackbold:last']->text());
 
         return $finalPrice;
+    }
+
+    public function setHotelFilter($HotelFilter)
+    {
+        $this->HotelFilter = $HotelFilter;
+    }
+
+    public function getHotelFilter()
+    {
+        return $this->HotelFilter;
     }
 }
