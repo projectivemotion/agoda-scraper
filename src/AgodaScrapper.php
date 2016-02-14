@@ -282,7 +282,7 @@ class AgodaScrapper
 
         $post_vars  =   array('bargs' => $roomVARS, 'exbed' => array(), 'rooms' => 1);
 
-        $checkout_page    =   $this->cache_get($prebookURL, json_encode($post_vars), true, true);
+        $checkout_page    =   $this->cache_get($prebookURL, json_encode($post_vars), true);
 
         $checkout_redir  =   json_decode($checkout_page);
 
@@ -294,7 +294,7 @@ class AgodaScrapper
         $checkout_info  =   $this->cache_get(html_entity_decode($checkout_redir->action), array('arg' => $checkout_redir->arg));
 
         $doc    =   phpQuery::newDocument($checkout_info);
-        $finalPrice =   $doc['#pnlTotalPrice .blackbold:last']->text();
+        $finalPrice =   str_replace(',', '', $doc['#pnlTotalPrice .blackbold:last']->text());
 
         return $finalPrice;
     }
