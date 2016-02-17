@@ -18,6 +18,7 @@ foreach($autoload_files as $autoload_file)
     require_once $autoload_file;
 }
 // end autoloader finder
+
 if($argc < 2)
 {
     die("Args are: $argv[0] [clean|use_cache=>0,1]");
@@ -43,11 +44,12 @@ $stdout = fopen('php://output', 'w');
 $Agoda->doSearchAll(function ($hotels, $page_num) use (&$stdout, $Agoda) {
     foreach($hotels as $hotel)
     {
+        $net    =   $Agoda->getNetHotelPrice($hotel);
         $obj = (object)$hotel;
         $mydata =   array($obj->TranslatedHotelName,
                 $obj->CurrencyCode,
                 $obj->FormattedDisplayPrice,
-                number_format($Agoda->getNetHotelPrice($hotel), 2)
+                number_format($net, 2)
                 );
         fputcsv($stdout, $mydata);
     }

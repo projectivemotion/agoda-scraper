@@ -79,11 +79,17 @@ class AgodaScrapper
         return sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cookie-agoda.txt';
     }
 
+    public function getCacheDir()
+    {
+        return sys_get_temp_dir() . DIRECTORY_SEPARATOR;
+//        return './';
+    }
+
     public function cache_get($url, $post = NULL, $JSON = false, $disable_cache = false)
     {
         if(!$this->use_cache || $disable_cache) return $this->getCurl($url, $post, $JSON);
 
-        $cachefile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . "agoda-" .  md5($url . print_r($post, true)) . '.html';
+        $cachefile = $this->getCacheDir() . "agoda-" .  md5($url . print_r($post, true)) . '.html';
         if(!file_exists($cachefile))
         {
             $content = $this->getCurl($url, $post, $JSON);
@@ -92,7 +98,7 @@ class AgodaScrapper
         }else {
             if($this->curl_verbose)
             {
-                echo "Cache: $url " . print_r($post, true), "\n";
+                echo "Cache: $url\nFile: $cachefile\n";
             }
             $content = file_get_contents($cachefile);
         }
@@ -297,8 +303,21 @@ class AgodaScrapper
 
         $checkout_info  =   $this->cache_get(html_entity_decode($checkout_redir->action), array('arg' => $checkout_redir->arg));
 
-        $doc    =   phpQuery::newDocument($checkout_info);
-        $finalPrice =   str_replace(',', '', $doc['#pnlTotalPrice .blackbold:last']->text());
+        $m  =   preg_match('#var\s+p\s*=\s*"([^"]*?)";#', $checkout_info, $pmatch);
+
+        if(!$m)
+            die("Unable to get p.");
+
+        $pvar = urldecode($pmatch[1]);
+        $method = 'https://ash.secure.agoda.com/b/book.aspx/GetBookingDetail?p=' . $pvar  . '&nocache=' . time();
+
+        $json   =   $this->cache_get($method, '{}', true);
+
+        $obj    =   json_decode($json);
+//
+//        $doc    =   phpQuery::newDocument($checkout_info);
+//        $price_str  =   $doc['#pnlTotalPrice .blackbold:last']->text();
+        $finalPrice =   str_replace(',', '', $obj->d->FinalPriceIncludedExcludedTax);
 
         return $finalPrice;
     }
