@@ -45,7 +45,7 @@ class AgodaScrapper
             $headers[]  =   'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8';
         }
         if($this->curl_verbose) {
-            curl_setopt($curl, CURLOPT_STDERR, fopen('php://output', 'w+'));
+//            curl_setopt($curl, CURLOPT_STDERR, fopen('php://output', 'w+'));
             curl_setopt($curl, CURLOPT_VERBOSE, 1);
         }
         if($post){
@@ -308,8 +308,9 @@ class AgodaScrapper
         if(!$m)
             die("Unable to get p.");
 
-        $pvar = urldecode($pmatch[1]);
-        $method = 'https://ash.secure.agoda.com/b/book.aspx/GetBookingDetail?p=' . $pvar  . '&nocache=' . time();
+        $checkout_host  =   parse_url($checkout_redir->action, PHP_URL_HOST);
+        $pvar = $pmatch[1]; //urldecode($pmatch[1]);
+        $method = 'https://' . $checkout_host . '/b/book.aspx/GetBookingDetail?p=' . $pvar  . '&nocache=' . time();
 
         $json   =   $this->cache_get($method, '{}', true);
 
