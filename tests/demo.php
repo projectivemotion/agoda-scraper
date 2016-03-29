@@ -31,20 +31,30 @@ if($argv[1] == 'clean')
     exit;
 }
 
-$Agoda = new AgodaScrapper();
+$Agoda = new \projectivemotion\AgodaScraper\Scraper();
 $Agoda->curl_verbose    =   0;
 $Agoda->use_cache       =   $argv[1] == '1';
 
 $Agoda->setHotelFilter('Hyatt');
 
-$data = $Agoda->doSearchInit('Paris', '2016-04-01', '2016-04-03', 'EUR');
+$data = $Agoda->doSearchInit('Paris', '2016-04-01', '2016-04-15', 'EUR');
 
 $stdout = fopen('php://output', 'w');
 
-$Agoda->doSearchAll(function ($hotels, $page_num) use (&$stdout, $Agoda) {
+$total_demo_limit   =   5;
+$total_found    =   0;
+$Agoda->doSearchAll(function ($hotels, $page_num) use (&$stdout, $Agoda, &$total_found, $total_demo_limit) {
+
     foreach($hotels as $hotel)
     {
+        if($total_found++ > $total_demo_limit)
+            return false;
+
         $net    =   $Agoda->getNetHotelPrice($hotel);
+
+        if($net == \projectivemotion\AgodaScraper\Scraper::PRICE_UNKNOWN)
+            continue;
+
         $obj = (object)$hotel;
         $mydata =   array($obj->TranslatedHotelName,
                 $obj->CurrencyCode,

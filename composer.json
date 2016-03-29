@@ -1,7 +1,8 @@
 {
-  "name": "projectivemotion/agodascrapper",
-  "description": "Scrape agoda.com",
-  "minimum-stability": "dev",
+  "name": "projectivemotion/agoda-scraper",
+  "description": "Scrape agoda.com hotel prices",
+  "minimum-stability": "stable",
+  "keywords": ["hotel", "price", "scraper"],
   "license": "MIT",
   "authors": [
     {
@@ -10,7 +11,9 @@
     }
   ],
   "autoload": {
-    "classmap": ["src/"]
+    "psr-4": {
+      "projectivemotion\\AgodaScraper\\": "src/"
+    }
   },
   "require": {
     "atofighi/phpquery": "2.0.1"
