@@ -1,12 +1,16 @@
 <?php
 
+namespace projectivemotion\AgodaScraper;
+
 /**
  * Project: AgodaScrapper
  *
  * @author Amado Martinez <amado@projectivemotion.com>
  */
-class AgodaScrapper
+class Scraper
 {
+    const PRICE_UNKNOWN  =   'Unknown';
+
     protected   $domain = 'www.agoda.com';
     protected   $last_url =   '';
     protected   $HotelFilter    =   '';
@@ -237,18 +241,28 @@ class AgodaScrapper
         return $data['initialResults']['ResultList'];
     }
 
+    public static function reportError($message, $page = '')
+    {
+        if($page)
+        {
+            $filename = './agoda-error-' . date('Ymd') . '.html';
+            file_put_contents($filename, $page);
+            $message    .=  ' See: ' . $filename;
+        }
+
+        throw new Exception($message);
+    }
+
     public function extractPageData($html)
     {
         $page_info  =   array('header' => "Failed", 'initialResults' => NULL, 'items' => NULL);
-        $m = preg_match('#<script>[\s\r\n]*var initialResults = ({[\s\S]*?});[\s\r\n]*var params = {};#', $html, $matches);
+        $m = preg_match('#<script[^>]*?>[\s\r\n]*var initialResults = ({[\s\S]*?});[\s\r\n]*var params = {};#', $html, $matches);
         if(!$m)
-        {
-            throw new Exception('Failed to receive a valid results page.');
-        }
+            $this->reportError('Failed to receive a valid results page.', $html);
 
         $page_info['initialResults']    =   json_decode($matches[1], true);
 
-        $doc = phpQuery::newDocument($html);
+        $doc = \phpQuery::newDocument($html);
 
         $page_info['header']   =   $doc['.searchlist-header']->text();
 
@@ -284,11 +298,17 @@ class AgodaScrapper
         $referrer = "http://$this->domain$HotelURL";
         $page_result    =   $this->cache_get($referrer);
 
-        $doc = phpQuery::newDocument($page_result);
+        $doc = \phpQuery::newDocument($page_result);
 
         $prebookURL =   $doc['table#room-grid-table tbody']->attr('data-prebook-url');
 
         $roomVARS   =   $doc['tr#room-1']->attr('data-bargs');
+
+        if($roomVARS == '')
+        {
+            // not available!
+            return self::PRICE_UNKNOWN;
+        }
 
         $post_vars  =   array('bargs' => $roomVARS, 'exbed' => array(), 'rooms' => 1);
 
@@ -297,7 +317,7 @@ class AgodaScrapper
         $checkout_redir  =   json_decode($checkout_page);
 
         if(!$checkout_redir)
-            throw new Exception("Failed to recieve info.");
+            $this->reportError("Failed to recieve info.", $checkout_page);
 
         $this->last_url =   $referrer;
 
@@ -306,7 +326,7 @@ class AgodaScrapper
         $m  =   preg_match('#var\s+p\s*=\s*"([^"]*?)";#', $checkout_info, $pmatch);
 
         if(!$m)
-            die("Unable to get p.");
+            $this->reportError('Unable to find p!', $checkout_info);
 
         $checkout_host  =   parse_url($checkout_redir->action, PHP_URL_HOST);
         $pvar = $pmatch[1]; //urldecode($pmatch[1]);

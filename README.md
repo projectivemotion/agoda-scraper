@@ -1,14 +1,41 @@
-# agodascrapper
+# agoda-scraper
 PHP class used for scraping agoda.com travel website.
 
-Scrapper
---------
-Someone who looks small but is really wired and can kick some major ass even though he doesn't look like it. (urban dictionary)
 
-Agoda.com
----------
-One of the fastest-growing online hotel platforms worldwide, listing hundreds of thousands of hotels and providing services in 38 different languages.
 
-### License
+## Use at your own risk!
+* I am not responsible for your use of this software.
+* Please do not abuse!
+* Please do not be stupid!
 
-MIT
+
+### Installation
+
+> composer require projectivemotion/agoda-scraper
+
+## Usage
+
+> php -f vendor/projectivemotion/agoda-scraper/tests/demo.php 1
+
+# License
+The MIT License (MIT)
+
+Copyright (c) 2016 Amado Martinez
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

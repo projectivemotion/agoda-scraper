@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "a77e92ec88726245e75722c3454b8fef",
-    "content-hash": "e6d9666ca0f4df0283617448792ff27f",
+    "hash": "020664cb77e5cd4b17f8cb4c5e151704",
+    "content-hash": "0403379656263dd3c7c073355d96062f",
     "packages": [
         {
             "name": "atofighi/phpquery",
@@ -54,7 +54,7 @@
     ],
     "packages-dev": [],
     "aliases": [],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
